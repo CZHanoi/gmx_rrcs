@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 
 '''
-
+A script can calculate residues-residues contact scores (rrcs) of a trajectory file created by GROMACS.
+Au : Chen Zhenghan
 '''
 
 import MDAnalysis as mda
@@ -46,6 +47,7 @@ res_list = []
 res_pair = []
 
 def input_para(input_file):
+    "Read in the parameter file."
     if not os.path.exists(input_file):
         raise InputFileError
     with open(input_file, 'r') as f:
@@ -65,6 +67,7 @@ def input_para(input_file):
 
 
 def check():
+    "Verify the correct format of the parameter file and initialize the Universe."
     # plot
     if basic['plot'] not in ('matplotlib', 'gnuplot', ''):
         raise ParameterWrongError('plot')
@@ -96,6 +99,7 @@ def check():
 
 
 def set_res(file_index):
+    "Read in the residue index file."
     global res_pair
     res_pair_set = set()
     f = open(file_index, 'r')
@@ -134,7 +138,8 @@ def set_res(file_index):
     res_pair = list(res_pair_set)
 
 
-def res_build():  # 建立残基三维数组用于储存最终结果，并同时统计残基数组，统计的对象被传递默认为生成的第一个pdb文件。
+def res_build():
+    "Construct and save the three-dimensional adjacency matrix of the results."
     global dt_min
     t1 = timeit.default_timer()
     bt = int(basic['bt']/dt_min)
@@ -143,7 +148,7 @@ def res_build():  # 建立残基三维数组用于储存最终结果，并同时
     pdbbase = basic['top']
     op = basic['res']
     fi = open(pdbbase, 'r')
-    all_lines = fi.readlines()  # 以下见之前发给你的rrcs解读的对应部分
+    all_lines = fi.readlines()
     fi.close()
     atom_lines = [l for l in all_lines if l[0:6] == 'ATOM  ']
     for line in atom_lines:
@@ -155,30 +160,31 @@ def res_build():  # 建立残基三维数组用于储存最终结果，并同时
         if chain_id == ' ':
             chain_id = '#'  # default:$
         res = chain_id + '+' + str(res_num) + '_' + res_name
-        if res not in contact_score:  # 最终结果的三维数组的第一维构建
+        if res not in contact_score:
             res_num_dict[res_num] = res
             contact_score[res] = {}
-            res_list.append(res)  # 统计残基
-    if op:  # 如果选择观察特定的残基对，那么数组的构建则是点分布而不是面分布，这样是为了节省时间
+            res_list.append(res)
+    if op:
         for pair in res_pair:
-            init_dict(res_num_dict[pair[0]], res_num_dict[pair[1]], bt, et, dt)  # 因为res_pair存储的元组中的是直接输入的残基的序列号，因此要对照字典
+            init_dict(res_num_dict[pair[0]], res_num_dict[pair[1]], bt, et, dt)
     else:
         for item in contact_score.keys():
             for index in res_list:
                 if not (item == index) and item not in contact_score[index]:
                     init_dict(item, index, bt, et, dt)
 
-    t2 = timeit.default_timer()  # 计时结束，记录的是构建最终结果的三维数组并初始化的时间，最慢一般不超过1s
+    t2 = timeit.default_timer()
     print("build time:%10.5f:" % (t2-t1))
 
 
-def init_dict(a_res, b_res, bt, et, dt):  # 为已经建立好的残基对的二维数组增加z轴，也就是时间轴
+def init_dict(a_res, b_res, bt, et, dt):
     contact_score[a_res][b_res] = {}
     for t in range(bt, et + 1, dt):
         contact_score[a_res][b_res][t] = 0.0
 
 
 def res_con2():
+    "Calculate whether there is contact between residue pairs."
     global u,dt_min
     t3 = timeit.default_timer()
     bt = basic['bt']
@@ -254,11 +260,12 @@ def res_con2():
 
 
 def rrcs(mat, d_max, d_min):
-    rows, cols = mat.shape  # 获取矩阵的行数和列数
+    "Calculate rrcs."
+    rows, cols = mat.shape
     total_score = 0
-    for i in range(rows):  # 按照行来遍历
-        for j in range(cols):  # 对第i行进行遍历
-            dis = mat[i, j]  # 输出第i行第j列元素（读）
+    for i in range(rows):
+        for j in range(cols):
+            dis = mat[i, j]
             if dis >= d_max:  # 4.63*4.63 = 21.4369
                 score = 0
             elif dis <= d_min:  # 3.23*3.23 = 10.4329
@@ -269,6 +276,7 @@ def rrcs(mat, d_max, d_min):
     return total_score
 
 def compute_distances(A, B):
+    "Calculate the Euclidean distance between each pair of vectors between two matrices."
     m = np.shape(A)[0]
     n = np.shape(B)[0]
     M = np.dot(A, B.T)
@@ -276,13 +284,14 @@ def compute_distances(A, B):
     K = np.tile(np.matrix(np.square(B).sum(axis=1)),(m,1))
     return np.sqrt(-2*M+H+K)
 
-def save_rrcs():  # 可视化，目前默认指定了要观察的残基对才会调用这一部分
+def save_rrcs():
+    "Save and output the results."
     global u
-    for pair in res_pair:  # 对于每个残基对
+    for pair in res_pair:
         ares = res_num_dict[pair[0]]
-        bres = res_num_dict[pair[1]]  # 由残基对序列号获得名称
+        bres = res_num_dict[pair[1]]
         x = np.array(list(contact_score[ares][bres].keys()))
-        y = np.array(list(contact_score[ares][bres].values()))  # plt方法，作用对象是一个数组，结果就是作图
+        y = np.array(list(contact_score[ares][bres].values()))
         title = f"{ares} and {bres} RRCS vs Time"
         "create xvg"
         with open(f'{ares}&{bres}.xvg', 'w') as f:
@@ -301,9 +310,10 @@ def save_rrcs():  # 可视化，目前默认指定了要观察的残基对才会
         plt.ylabel("RRCS")
         #plt.show()
         wd = os.getcwd()
-        plt.savefig(f"{ares}&{bres}.png")  # 保存当前plt类获取的图像，作用于字符串为输出文件名
+        plt.savefig(f"{ares}&{bres}.png")
 
 def chge(titl,count):
+    "If there is an existing folder with the same name in the current directory, change the name of the existing folder."
     if os.path.exists(titl+str(count)):
         count+=1
         chge(titl,count)
