@@ -90,9 +90,9 @@ def check():
     u = mda.Universe(basic['top'], basic['traj'])
     basic['res_num'] = len(u.residues)
     # ti
-    dt_min = (u.trajectory.time[-1] - u.trajectory.time[0]) / (len(u.trajectory) - 1)
+    dt_min = (u.trajectory[-1].time - u.trajectory[0].time) / (len(u.trajectory) - 1)
     basic['bt'] = max(basic['bt'], 0.0)
-    basic['et'] = min(basic['et'], u.trajectory.time[-1])
+    basic['et'] = min(basic['et'], u.trajectory[-1].time)
     basic['dt'] = max(dt_min, basic['dt'])
     if basic['dt'] > basic['et']:
         raise ParameterWrongError('dt')
