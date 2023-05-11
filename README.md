@@ -12,9 +12,10 @@ pip install -r requirements.txt
 ## How to run
 
 One of the following:
+After Put the script in dictionary **example**
 
 ```
-python3 gmx_rrcs.py example/example.txt
+python3 gmx_rrcs.py example.txt
 ```
 
 Among them, the file "example.txt" is the input parameter format. An example is shown below. The relevant parameters have a default value, while the topology file (top) and trajectory (traj) file are required.

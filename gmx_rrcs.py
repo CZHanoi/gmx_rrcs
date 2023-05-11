@@ -105,12 +105,12 @@ def set_res(file_index):
     f = open(file_index, 'r')
     lines = f.readlines()
     for line in lines:
-        if '$' in line:
-            res_former = int(line.split("$")[0])
+        if '$' in line.strip().split(';', 1)[0]:
+            res_former = int(line.strip().split(';', 1)[0].strip().split("$")[0])
             res_latter_selc = []
-            if 'all' in line.split("$")[0]:
+            if 'all' in line.strip().split(';', 1)[0].split("$")[0]:
                 res_latter_selc = list(range(1,basic['res_num']+1))
-            res_latter = line.split("$")[1].strip().split()
+            res_latter = line.strip().split(';', 1)[0].split("$")[1].strip().split()
             for res in res_latter:
                 if '-' in res:
                     start, end = res.split('-')
@@ -124,7 +124,7 @@ def set_res(file_index):
 
         else:
             res_selc = []
-            res_list = line.split()
+            res_list = line.split(';', 1)[0].strip().split()
             for res in res_list:
                 if '-' in res:
                     start, end = res.split('-')
@@ -249,7 +249,7 @@ def res_con2():
                     if sub_heavy_atom and (jatom in ['N', 'CA', 'C', 'O']):
                         continue
                     jres2np.append(jres_atom[jatom][0] * jres_atom[jatom][1])
-                if not jres2np:
+                if (not jres2np) or (not ires2np):
                     contact_score[ires][jres][time] = total_score
                     continue
                 ires_np = np.array(ires2np)

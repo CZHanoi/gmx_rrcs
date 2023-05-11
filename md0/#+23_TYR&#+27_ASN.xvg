@@ -1,0 +1,16 @@
+# Created by Python script rrcs3_1.py
+@    title "#+23_TYR and #+27_ASN RRCS vs Time"
+@    xaxis  label "Time (ps)"
+@    yaxis  label "RRCS"
+@TYPE xy
+0.000	1.669
+10.000	0.955
+20.000	0.356
+30.000	1.757
+40.000	0.688
+50.000	6.400
+60.000	1.019
+70.000	0.362
+80.000	2.542
+90.000	2.298
+100.000	1.929
