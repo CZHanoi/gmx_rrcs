@@ -50,3 +50,4 @@ This may not be of publication quality, but it provides the necessary variation 
 
 If the files you output are as follows, then your run is considered successful:
 
+![__1_LYS___2_VAL.png](https://s2.loli.net/2023/05/11/nvyqBwulgR1HGdI.png)
