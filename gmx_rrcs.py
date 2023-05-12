@@ -214,6 +214,7 @@ def res_con2():
             ires_atom = {i[1]: [u.atoms[i[0] - 1].position, i[2]] for i in
                          ires_atom_name}  # {atom_name:[array[x,y,z],occ]}
             for kres in contact_score[ires].keys():
+                contact_score[ires][kres][time] = 0.0
                 kres_id = int(kres.split('+')[1].split('_')[0].strip())
                 kres_atom_index = list(u.select_atoms(f'resid {kres_id} and not name H*').ids - 1)
                 kres_atom_name = list(u.atoms[kres_atom_index].groupby(['ids', 'names', 'occupancies']))
