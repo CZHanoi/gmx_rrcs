@@ -45,6 +45,7 @@ contact_score = {}
 res_num_dict = {}
 res_list = []
 res_pair = []
+time_step = []
 
 def input_para(input_file):
     "Read in the parameter file."
@@ -105,12 +106,12 @@ def set_res(file_index):
     f = open(file_index, 'r')
     lines = f.readlines()
     for line in lines:
-        if '$' in line.strip().split(';', 1)[0]:
-            res_former = int(line.strip().split(';', 1)[0].strip().split("$")[0])
+        if '$' in line:
+            res_former = int(line.split("$")[0])
             res_latter_selc = []
-            if 'all' in line.strip().split(';', 1)[0].split("$")[0]:
+            if 'all' in line.split("$")[0]:
                 res_latter_selc = list(range(1,basic['res_num']+1))
-            res_latter = line.strip().split(';', 1)[0].split("$")[1].strip().split()
+            res_latter = line.split("$")[1].strip().split()
             for res in res_latter:
                 if '-' in res:
                     start, end = res.split('-')
@@ -124,8 +125,8 @@ def set_res(file_index):
 
         else:
             res_selc = []
-            res_list = line.split(';', 1)[0].strip().split()
-            for res in res_list:
+            res2list = line.split()
+            for res in res2list:
                 if '-' in res:
                     start, end = res.split('-')
                     res_range = range(int(start), int(end) + 1)
@@ -140,11 +141,11 @@ def set_res(file_index):
 
 def res_build():
     "Construct and save the three-dimensional adjacency matrix of the results."
-    global dt_min
+    global dt_min,time_step
     t1 = timeit.default_timer()
     bt = int(basic['bt']/dt_min)
-    et = int(10*basic['et']/dt_min)
-    dt = int(10*basic['dt']/dt_min)
+    et = int(basic['et']/dt_min)
+    dt = int(basic['dt']/dt_min)
     pdbbase = basic['top']
     op = basic['res']
     fi = open(pdbbase, 'r')
@@ -164,7 +165,7 @@ def res_build():
             res_num_dict[res_num] = res
             contact_score[res] = {}
             res_list.append(res)
-    '''        
+    time_step = [i.time for i in u.trajectory]
     if op:
         for pair in res_pair:
             init_dict(res_num_dict[pair[0]], res_num_dict[pair[1]], bt, et, dt)
@@ -173,14 +174,14 @@ def res_build():
             for index in res_list:
                 if not (item == index) and item not in contact_score[index]:
                     init_dict(item, index, bt, et, dt)
-    '''
     t2 = timeit.default_timer()
     print("build time:%10.5f:" % (t2-t1))
 
 
 def init_dict(a_res, b_res, bt, et, dt):
+    global time_step
     contact_score[a_res][b_res] = {}
-    for t in range(bt, et + 1, dt):
+    for t in time_step[bt:et:dt]:
         contact_score[a_res][b_res][t] = 0.0
 
 
@@ -214,7 +215,7 @@ def res_con2():
             ires_atom = {i[1]: [u.atoms[i[0] - 1].position, i[2]] for i in
                          ires_atom_name}  # {atom_name:[array[x,y,z],occ]}
             for kres in contact_score[ires].keys():
-                contact_score[ires][kres][time] = 0.0
+                #contact_score[ires][kres][time] = 0.0
                 kres_id = int(kres.split('+')[1].split('_')[0].strip())
                 kres_atom_index = list(u.select_atoms(f'resid {kres_id} and not name H*').ids - 1)
                 kres_atom_name = list(u.atoms[kres_atom_index].groupby(['ids', 'names', 'occupancies']))
@@ -251,7 +252,7 @@ def res_con2():
                     if sub_heavy_atom and (jatom in ['N', 'CA', 'C', 'O']):
                         continue
                     jres2np.append(jres_atom[jatom][0] * jres_atom[jatom][1])
-                if (not jres2np) or (not ires2np):
+                if not jres2np:
                     contact_score[ires][jres][time] = total_score
                     continue
                 ires_np = np.array(ires2np)
