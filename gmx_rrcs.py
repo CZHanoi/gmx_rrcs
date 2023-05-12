@@ -164,6 +164,7 @@ def res_build():
             res_num_dict[res_num] = res
             contact_score[res] = {}
             res_list.append(res)
+    '''        
     if op:
         for pair in res_pair:
             init_dict(res_num_dict[pair[0]], res_num_dict[pair[1]], bt, et, dt)
@@ -172,7 +173,7 @@ def res_build():
             for index in res_list:
                 if not (item == index) and item not in contact_score[index]:
                     init_dict(item, index, bt, et, dt)
-
+    '''
     t2 = timeit.default_timer()
     print("build time:%10.5f:" % (t2-t1))
 
