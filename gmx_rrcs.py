@@ -200,8 +200,7 @@ def res_con2():
         time = u.trajectory.time
         if time % 50000 == 0:
             t4 = timeit.default_timer()
-            print(time,f"这{count}次计算用时",t4-t3,'s')
-            count = 0
+            print(time,f"We've done{count} frames and using",t4-t3,'s')
             t3=t4
         res_contact = {}
         for ires in res_list:
